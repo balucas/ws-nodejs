@@ -1,5 +1,5 @@
 const redis = require('redis')
-const client = redis.createClient()
+const client = redis.createClient(process.env.REDIS_URL)
 const reqLimit = 5
 
 module.exports = (req, res, next) =>{
@@ -19,10 +19,9 @@ module.exports = (req, res, next) =>{
                 "windowStart": Date.now()
             }
             client.set(req.ip, JSON.stringify(body))
-            console.log("Added IP", req.ip)
+            next()
         }else{
             client.get(req.ip, (err, reply) => {
-                console.log("Found in store " + reply )
                 let body = JSON.parse(reply)
                 let start = body.windowStart
                 
@@ -43,7 +42,6 @@ module.exports = (req, res, next) =>{
                         next()
                     }else{
                         //exceeded rate limit
-                        console.log("Rate limit exceeded")
                         res.status(429)
                         res.send()
                     }
