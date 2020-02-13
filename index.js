@@ -6,11 +6,17 @@ const app = express()
 // https://www.postgresql.org/docs/9.6/static/libpq-envars.html
 const pool = new pg.Pool()
 
+const rateLimiter = require('./ratelimiter')
+
+require('dotenv').config()
+
 const queryHandler = (req, res, next) => {
   pool.query(req.sqlQuery).then((r) => {
     return res.json(r.rows || [])
   }).catch(next)
 }
+
+app.use(rateLimiter)
 
 app.get('/', (req, res) => {
   res.send('Welcome to EQ Works 😎')
@@ -23,6 +29,7 @@ app.get('/events/hourly', (req, res, next) => {
     ORDER BY date, hour
     LIMIT 168;
   `
+  console.log(req.ip)
   return next()
 }, queryHandler)
 
