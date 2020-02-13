@@ -1,6 +1,11 @@
 version: '2'
 
 services:
+  redis:
+    image: redis
+    container_name: cache
+    expose:
+      - 6379
   app:
     build: .
     ports:
@@ -10,6 +15,9 @@ services:
       # prevents host/container contamination
       - /usr/src/app/node_modules
     env_file: .env
+    links:
+      - redis
     environment:
+      - REDIS_URL=redis://cache
       - NODE_ENV=development
     command: npm run dev
